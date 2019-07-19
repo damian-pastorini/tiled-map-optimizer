@@ -73,7 +73,7 @@ class Processor
         // calculate new map image size:
         $totalTiles = count($this->mappedOldToNewTiles);
         $this->totalColumns = ceil(sqrt($totalTiles));
-        $this->newMapImageWidth = $this->totalColumns * $this->tileWidth + 16;
+        $this->newMapImageWidth = $this->totalColumns * $this->tileWidth + $this->tileWidth;
         $this->totalRows = ceil($totalTiles / $this->totalColumns);
         $this->newMapImageHeight = $this->totalRows * $this->tileHeight;
         // get tilesets data:
@@ -142,8 +142,7 @@ class Processor
             }
             $tileset = $this->getTilesetByTileIndex($mappedTileIndex);
             $tilePosition = $this->getTilePositionFromTilesetData($tileset, $mappedTileIndex);
-            $newImagePosition = (17 * $tilesColCounter) + $tilesRowCounter + 1;
-            // $this->newImagesPositions[$mappedTileIndex] = $newImagePosition;
+            $newImagePosition = (($this->totalColumns + 1) * $tilesColCounter) + $tilesRowCounter + 1;
             $singleTileImage = $this->createSingleTileImage($tileset['tmp_image'], $tilePosition['x'], $tilePosition['y']);
             if($singleTileImage){
                 $destX = $tilesRowCounter * $this->tileWidth;
@@ -231,8 +230,8 @@ class Processor
         $newTileset->name = strtolower($this->newName);
         $newTileset->spacing = 0;
         $newTileset->tilecount = $this->totalRows * $this->totalColumns;
-        $newTileset->tileheight = 16;
-        $newTileset->tilewidth = 16;
+        $newTileset->tileheight = $this->tileWidth;
+        $newTileset->tilewidth = $this->tileHeight;
         $newTileset->transparentcolor = "#000000";
         $json->tilesets = [$newTileset];
         $save = fopen('created/'.$this->newName.'.json', "w");
