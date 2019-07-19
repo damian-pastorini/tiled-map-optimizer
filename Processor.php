@@ -6,6 +6,7 @@ class Processor
 {
 
     protected $newName;
+    protected $transparentColor;
     protected $tileWidth;
     protected $tileHeight;
     protected $totalRows;
@@ -24,9 +25,10 @@ class Processor
      * @param $images
      * @param string $newName
      */
-    public function __construct($json, $images, $newName = 'optimizedMap')
+    public function __construct($json, $images, $newName = 'optimizedMap', $transparentColor = '#000000')
     {
         $this->newName = $newName;
+        $this->transparentColor = $transparentColor;
         $this->tileWidth = $json->tilewidth;
         $this->tileHeight = $json->tileheight;
         $this->orderImages($images);
@@ -233,9 +235,9 @@ class Processor
         $newTileSet->tilecount = $this->totalRows * $this->totalColumns;
         $newTileSet->tileheight = $this->tileWidth;
         $newTileSet->tilewidth = $this->tileHeight;
-        $newTileSet->transparentcolor = "#000000";
+        $newTileSet->transparentcolor = $this->transparentColor;
         $json->tilesets = [$newTileSet];
-        $save = fopen('created/'.$this->newName.'.json', "w");
+        $save = fopen('created/'.$this->newName.'.json', 'w');
         fwrite($save, json_encode($json));
         fclose($save);
     }

@@ -25,6 +25,10 @@
                 <label for="json_file">Optimized Map New Name</label><input id="new_name" name="new_name" type="text"/>
             </p>
             <p>
+                <label for="json_file">Transparent Color (i.e: #ffffff)</label><input id="transparent_color" name="transparent_color" type="text"/>
+                <br/><span>If not specified, then black ("#000000"), will be used by default.</span>
+            </p>
+            <p>
                 <label for="json_file">JSON Map File</label><input id="json_file" name="json_file" type="file"/>
                 <input type="hidden" id="counter" name="counter" value="0"/>
             </p>
