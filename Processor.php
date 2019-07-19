@@ -15,29 +15,29 @@ class Processor
     protected $mappedOldToNewTiles = [];
     protected $tilesetsData = [];
     protected $uploadedImages = [];
+    protected $newImagesPositions = [];
 
     /**
      * Processor constructor.
      * @param $json
      * @param $images
+     * @param string $newName
      */
-    public function __construct($json, $images)
+    public function __construct($json, $images, $newName = 'optimizedMap')
     {
+        $this->newName = $newName;
         $this->tileWidth = $json->tilewidth;
         $this->tileHeight = $json->tileheight;
         $this->orderImages($images);
         $this->parseJSON($json);
-        var_dump($json);
-        var_dump($this->mappedOldToNewTiles);
-        var_dump($this->newMapImageWidth, $this->newMapImageHeight);
-        var_dump($images);
-        $newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
-        imagealphablending($newMapImage, true);
-        imagesavealpha($newMapImage, true);
-        $this->newMapImage = $newMapImage;
+        $this->newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
         $this->createThumbsFromLayersData();
+        $this->createNewJSON($json);
     }
 
+    /**
+     * @param $images
+     */
     protected function orderImages($images)
     {
         foreach ($images['name'] as $key => $imageName){
@@ -73,7 +73,7 @@ class Processor
         // calculate new map image size:
         $totalTiles = count($this->mappedOldToNewTiles);
         $this->totalColumns = ceil(sqrt($totalTiles));
-        $this->newMapImageWidth = $this->totalColumns * $this->tileWidth;
+        $this->newMapImageWidth = $this->totalColumns * $this->tileWidth + 16;
         $this->totalRows = ceil($totalTiles / $this->totalColumns);
         $this->newMapImageHeight = $this->totalRows * $this->tileHeight;
         // get tilesets data:
@@ -85,75 +85,159 @@ class Processor
                 'last' => ($tileset->firstgid + $tileset->tilecount),
                 'tiles_count' => $tileset->tilecount,
                 'image' => $tilesetImageName,
-                'tmp_image' => $this->getTempImageByName($tilesetImageName)
+                'tmp_image' => $this->getTempImageByName($tilesetImageName),
+                'width' => $tileset->imagewidth,
+                'height' => $tileset->imageheight
             ];
         }
     }
 
+    /**
+     * @param $tilesetImageName
+     * @return bool|mixed
+     */
     protected function getTempImageByName($tilesetImageName)
     {
+        $result = false;
         foreach ($this->uploadedImages as $uploadedImage){
-            if($uploadedImage['name'] === $tilesetImageName){
-                return $uploadedImage['tmp_name'];
+            if($uploadedImage['name'] == $tilesetImageName){
+                $result = $uploadedImage['tmp_name'];
             }
         }
-        die('ERROR - The specified image in the tileset was not found: '.$tilesetImageName);
+        if(!$result){
+            die('ERROR - The specified image in the tileset was not found: '.$tilesetImageName);
+        }
+        return $result;
     }
 
     /**
      * @param $baseImage
-     * @param $tileIndex
      * @param $tileX
      * @param $tileY
      * @return bool|resource
      */
-    protected function createSingleTileImage($baseImage, $tileIndex, $tileX, $tileY)
+    protected function createSingleTileImage($baseImage, $tileX, $tileY)
     {
-        $tileImage = false;
         $im = imagecreatefrompng($baseImage);
-        imagealphablending($im, true);
-        imagesavealpha($im, true);
         $tileData = [
             'x' => $tileX,
             'y' => $tileY,
             'width' => $this->tileWidth,
             'height' => $this->tileHeight
         ];
-        $im2 = imagecrop($im, $tileData);
-        if ($im2 !== false) {
-            $tileImage = imagepng($im2, $tileIndex.'.png');
-            imagedestroy($im2);
-        }
+        $tileImage = imagecrop($im, $tileData);
         return $tileImage;
     }
-    
+
     protected function createThumbsFromLayersData()
     {
-        $tilesCounter = 0;
+        $tilesRowCounter = 0;
+        $tilesColCounter = 0;
         foreach ($this->mappedOldToNewTiles as $newTileIndex => $mappedTileIndex){
+            if($tilesRowCounter > 0 && $tilesRowCounter == $this->totalColumns){
+                $tilesRowCounter = 0;
+                $tilesColCounter++;
+            } else {
+                $tilesRowCounter++;
+            }
             $tileset = $this->getTilesetByTileIndex($mappedTileIndex);
             $tilePosition = $this->getTilePositionFromTilesetData($tileset, $mappedTileIndex);
-            $singleTileImage = $this->createSingleTileImage($tileset['tmp_image'], $newTileIndex, $tilePosition['x'], $tilePosition['y']);
+            $newImagePosition = (17 * $tilesColCounter) + $tilesRowCounter + 1;
+            // $this->newImagesPositions[$mappedTileIndex] = $newImagePosition;
+            $singleTileImage = $this->createSingleTileImage($tileset['tmp_image'], $tilePosition['x'], $tilePosition['y']);
             if($singleTileImage){
-                $destX = $tilesCounter;
-                $destY = $tilesCounter;
+                $destX = $tilesRowCounter * $this->tileWidth;
+                $destY = $tilesColCounter * $this->tileHeight;
+                // @NOTE: x and y for the origin positions are always 0 since we are using new images.
                 imagecopy($this->newMapImage, $singleTileImage, $destX, $destY, 0, 0, $this->tileWidth, $this->tileHeight);
+                $this->newImagesPositions[$mappedTileIndex] = $newImagePosition;
             } else {
                 die('ERROR - Tile image could not be created.');
             }
         }
-        imagepng($this->newMapImage, 'optimizedMap.png');
+        if(!is_dir('created')){
+            mkdir('created', 775);
+        }
+        imagepng($this->newMapImage, 'created/'.$this->newName.'.png');
+        echo '<h2>Download your optimized JSON and image map files!</h2>';
+        echo '<img src="created/'.$this->newName.'.png"/>';
+        echo '<a href="created/'.$this->newName.'.json">New JSON Map File</a>';
         imagedestroy($this->newMapImage);
     }
 
-    protected function getTilesetByTileIndex($mappedTileIndex)
+    /**
+     * @param $tileset
+     * @param $mappedTileIndex
+     * @return array|bool
+     */
+    protected function getTilePositionFromTilesetData($tileset, $mappedTileIndex)
     {
-        foreach ($this->tilesetsData as $tileset){
-            if($mappedTileIndex >= $tileset['first'] && $mappedTileIndex <= $tileset['last']){
-                return $tileset;
+        $result = false;
+        $totalColumns = $tileset['width'] / $this->tileWidth;
+        $totalRows = $tileset['height'] / $this->tileHeight;
+        $tilesCounter = 0;
+        for ($r=0; $r<$totalRows; $r++){
+            for ($c=0; $c<$totalColumns; $c++) {
+                $mapIndex = $tilesCounter + $tileset['first'];
+                if($mapIndex == $mappedTileIndex){
+                    $posX = $c * $this->tileWidth;
+                    $posY = $r * $this->tileHeight;
+                    $result = ['x' => $posX, 'y' => $posY];
+                    break;
+                }
+                $tilesCounter++;
+            }
+            if($result){
+                break;
             }
         }
-        die('ERROR - $mappedTileIndex not found');
+        return $result;
+    }
+
+    /**
+     * @param $mappedTileIndex
+     * @return bool|mixed
+     */
+    protected function getTilesetByTileIndex($mappedTileIndex)
+    {
+        $result = false;
+        foreach ($this->tilesetsData as $tileset){
+            if($mappedTileIndex >= $tileset['first'] && $mappedTileIndex <= $tileset['last']){
+                $result = $tileset;
+            }
+        }
+        if(!$result){
+            die('ERROR - $mappedTileIndex not found');
+        }
+        return $result;
+    }
+
+    protected function createNewJSON($json)
+    {
+        foreach ($json->layers as $layer){
+            foreach ($layer->data as $k => $data){
+                if($data !== 0){
+                    $layer->data[$k] = $this->newImagesPositions[$data];
+                }
+            }
+        }
+        $newTileset = new stdClass();
+        $newTileset->columns = $this->totalColumns;
+        $newTileset->firstgid = 1;
+        $newTileset->image = $this->newName.'.png';
+        $newTileset->imageheight = $this->newMapImageHeight;
+        $newTileset->imagewidth = $this->newMapImageWidth;
+        $newTileset->margin = 0;
+        $newTileset->name = strtolower($this->newName);
+        $newTileset->spacing = 0;
+        $newTileset->tilecount = $this->totalRows * $this->totalColumns;
+        $newTileset->tileheight = 16;
+        $newTileset->tilewidth = 16;
+        $newTileset->transparentcolor = "#000000";
+        $json->tilesets = [$newTileset];
+        $save = fopen('created/'.$this->newName.'.json', "w");
+        fwrite($save, json_encode($json));
+        fclose($save);
     }
 
 }

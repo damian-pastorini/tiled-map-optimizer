@@ -8,6 +8,7 @@
                 let counter = parseInt($('#counter').val());
                 counter++;
                 $('.tilemaps-container').append(`<br/><label for="tile_map[${counter}]">Tile Map PNG File</label><input id="tile_map[${counter}]" name="tile_map[${counter}]" type="file"/>`);
+                $('#counter').val(counter);
             }
         </script>
     </head>
@@ -20,6 +21,9 @@
         </ul>
 
         <form action="index.php" method="post" enctype="multipart/form-data">
+            <p>
+                <label for="json_file">Optimized Map New Name</label><input id="new_name" name="new_name" type="text"/>
+            </p>
             <p>
                 <label for="json_file">JSON Map File</label><input id="json_file" name="json_file" type="file"/>
                 <input type="hidden" id="counter" name="counter" value="0"/>
@@ -48,7 +52,7 @@
                 }
                 // process content:
                 require_once('Processor.php');
-                $processor = new Processor($jsonContents, $_FILES['tile_map']);
+                $processor = new Processor($jsonContents, $_FILES['tile_map'], (isset($_POST['new_name']) ? $_POST['new_name'] : false));
             }
         } catch (Exception $e) {
             echo $e->getMessage();
