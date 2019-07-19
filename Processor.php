@@ -5,6 +5,7 @@
 class Processor
 {
 
+    protected $newName;
     protected $tileWidth;
     protected $tileHeight;
     protected $totalRows;
@@ -13,7 +14,7 @@ class Processor
     protected $newMapImageHeight;
     protected $newMapImage;
     protected $mappedOldToNewTiles = [];
-    protected $tilesetsData = [];
+    protected $tileSetData = [];
     protected $uploadedImages = [];
     protected $newImagesPositions = [];
 
@@ -80,7 +81,7 @@ class Processor
         foreach ($json->tilesets as $tileset){
             $tilesetImagePathArray = explode('/', $tileset->image);
             $tilesetImageName = end($tilesetImagePathArray);
-            $this->tilesetsData[$tileset->name] = [
+            $this->tileSetData[$tileset->name] = [
                 'first' => $tileset->firstgid,
                 'last' => ($tileset->firstgid + $tileset->tilecount),
                 'tiles_count' => $tileset->tilecount,
@@ -140,14 +141,14 @@ class Processor
             } else {
                 $tilesRowCounter++;
             }
-            $tileset = $this->getTilesetByTileIndex($mappedTileIndex);
+            $tileset = $this->getTileSetByTileIndex($mappedTileIndex);
             $tilePosition = $this->getTilePositionFromTilesetData($tileset, $mappedTileIndex);
             $newImagePosition = (($this->totalColumns + 1) * $tilesColCounter) + $tilesRowCounter + 1;
             $singleTileImage = $this->createSingleTileImage($tileset['tmp_image'], $tilePosition['x'], $tilePosition['y']);
             if($singleTileImage){
                 $destX = $tilesRowCounter * $this->tileWidth;
                 $destY = $tilesColCounter * $this->tileHeight;
-                // @NOTE: x and y for the origin positions are always 0 since we are using new images.
+                // @NOTE: x and y for the origin positions are always 0 since we are using new and just cropped images.
                 imagecopy($this->newMapImage, $singleTileImage, $destX, $destY, 0, 0, $this->tileWidth, $this->tileHeight);
                 $this->newImagesPositions[$mappedTileIndex] = $newImagePosition;
             } else {
@@ -197,12 +198,12 @@ class Processor
      * @param $mappedTileIndex
      * @return bool|mixed
      */
-    protected function getTilesetByTileIndex($mappedTileIndex)
+    protected function getTileSetByTileIndex($mappedTileIndex)
     {
         $result = false;
-        foreach ($this->tilesetsData as $tileset){
-            if($mappedTileIndex >= $tileset['first'] && $mappedTileIndex <= $tileset['last']){
-                $result = $tileset;
+        foreach ($this->tileSetData as $tileSet){
+            if($mappedTileIndex >= $tileSet['first'] && $mappedTileIndex <= $tileSet['last']){
+                $result = $tileSet;
             }
         }
         if(!$result){
@@ -220,20 +221,20 @@ class Processor
                 }
             }
         }
-        $newTileset = new stdClass();
-        $newTileset->columns = $this->totalColumns;
-        $newTileset->firstgid = 1;
-        $newTileset->image = $this->newName.'.png';
-        $newTileset->imageheight = $this->newMapImageHeight;
-        $newTileset->imagewidth = $this->newMapImageWidth;
-        $newTileset->margin = 0;
-        $newTileset->name = strtolower($this->newName);
-        $newTileset->spacing = 0;
-        $newTileset->tilecount = $this->totalRows * $this->totalColumns;
-        $newTileset->tileheight = $this->tileWidth;
-        $newTileset->tilewidth = $this->tileHeight;
-        $newTileset->transparentcolor = "#000000";
-        $json->tilesets = [$newTileset];
+        $newTileSet = new stdClass();
+        $newTileSet->columns = $this->totalColumns;
+        $newTileSet->firstgid = 1;
+        $newTileSet->image = $this->newName.'.png';
+        $newTileSet->imageheight = $this->newMapImageHeight;
+        $newTileSet->imagewidth = $this->newMapImageWidth;
+        $newTileSet->margin = 0;
+        $newTileSet->name = strtolower($this->newName);
+        $newTileSet->spacing = 0;
+        $newTileSet->tilecount = $this->totalRows * $this->totalColumns;
+        $newTileSet->tileheight = $this->tileWidth;
+        $newTileSet->tilewidth = $this->tileHeight;
+        $newTileSet->transparentcolor = "#000000";
+        $json->tilesets = [$newTileSet];
         $save = fopen('created/'.$this->newName.'.json', "w");
         fwrite($save, json_encode($json));
         fclose($save);
