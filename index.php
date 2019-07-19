@@ -56,7 +56,12 @@
                 }
                 // process content:
                 require_once('Processor.php');
-                $processor = new Processor($jsonContents, $_FILES['tile_map'], (isset($_POST['new_name']) ? $_POST['new_name'] : false));
+                $processor = new Processor(
+                    $jsonContents,
+                    $_FILES['tile_map'],
+                    (isset($_POST['new_name']) ? $_POST['new_name'] : false),
+                    (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : false)
+                );
             }
         } catch (Exception $e) {
             echo $e->getMessage();
