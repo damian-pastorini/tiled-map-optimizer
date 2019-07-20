@@ -157,18 +157,24 @@ class Processor
                 die('ERROR - Tile image could not be created.');
             }
         }
-        if(!is_dir('created')){
-            mkdir('created', 775);
+        if(!is_dir(__DIR__.'created')){
+            mkdir(__DIR__.'created', 775);
         }
-        imagepng($this->newMapImage, 'created/'.$this->newName.'.png');
+        imagepng($this->newMapImage, __DIR__.'created/'.$this->newName.'.png');
+        $currentUrl = '';
+        if(file_exists(__DIR__.'config.php')){
+            require_once(__DIR__.'config.php');
+        }
         echo '<div class="col-12 mb-3">'
             .'<h2>Download your optimized JSON and image map file!</h2>'
             .'</div>'
             .'<div class="col-12 mb-3">'
-            .'<a href="/created/'.$this->newName.'.json">New JSON Map File</a>'
+            .'<a href="'.$currentUrl.'/created/'.$this->newName.'.json">New JSON Map File</a>'
             .'</div>'
             .'<div class="col-12 mb-3">'
-            .'<a href="/created/'.$this->newName.'.png"><img src="/created/'.$this->newName.'.png"/></a>'
+            .'<a href="'.$currentUrl.'/created/'.$this->newName.'.png">'
+            .'<img src="'.$currentUrl.'/created/'.$this->newName.'.png"/>'
+            .'</a>'
             .'</div>';
         imagedestroy($this->newMapImage);
     }
@@ -243,7 +249,7 @@ class Processor
         $newTileSet->tilewidth = $this->tileHeight;
         $newTileSet->transparentcolor = $this->transparentColor;
         $json->tilesets = [$newTileSet];
-        $save = fopen('created/'.$this->newName.'.json', 'w');
+        $save = fopen(__DIR__.'created/'.$this->newName.'.json', 'w');
         fwrite($save, json_encode($json));
         fclose($save);
     }

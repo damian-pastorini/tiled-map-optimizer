@@ -1,10 +1,11 @@
+<?php require_once('config.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>DwD - Tilemap Optimizer</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
-    <script src="/js/jquery-3.4.1.min.js" type="text/javascript"></script>
-    <script src="/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="<?php echo $currentUrl; ?>/css/bootstrap.min.css"/>
+    <script src="<?php echo $currentUrl; ?>/js/jquery-3.4.1.min.js" type="text/javascript"></script>
+    <script src="<?php echo $currentUrl; ?>/js/bootstrap.bundle.min.js" type="text/javascript"></script>
     <script type="text/javascript">
         function addTileMap() {
             let counter = parseInt($('#counter').val());
