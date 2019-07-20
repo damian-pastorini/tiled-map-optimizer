@@ -50,9 +50,9 @@ class Processor
     protected function createAndConfigureFolders()
     {
         $this->baseDir = dirname(__FILE__).DS;
-        $this->createDir = $this->baseDir.DS.'create'.DS;
+        $this->createDir = $this->baseDir.'created'.DS;
         if(!is_dir($this->createDir)){
-            mkdir($this->createDir, 775);
+            mkdir($this->createDir, 0775);
         }
     }
 
@@ -176,7 +176,8 @@ class Processor
             }
         }
         imagepng($this->newMapImage, $this->createDir.$this->newName.'.png');
-        chmod($this->createDir.$this->newName.'.png', '775');
+        chmod($this->createDir.$this->newName.'.png', 0775);
+        // echo $this->createDir.$this->newName.'.png';
         echo '<div class="col-12 mb-3">'
             .'<h2>Download your optimized JSON and image map file!</h2>'
             .'</div>'
@@ -263,8 +264,9 @@ class Processor
         $json->tilesets = [$newTileSet];
         $save = fopen($this->createDir.$this->newName.'.json', 'w');
         fwrite($save, json_encode($json));
-        chmod($this->createDir.$this->newName.'.json', '775');
         fclose($save);
+        chmod($this->createDir.$this->newName.'.json', 0775);
+        // echo $this->createDir.$this->newName.'.json';
     }
 
 }
