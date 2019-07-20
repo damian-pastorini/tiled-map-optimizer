@@ -18,6 +18,7 @@ class Processor
     protected $tileSetData = [];
     protected $uploadedImages = [];
     protected $newImagesPositions = [];
+    protected $baseDir;
 
     /**
      * Processor constructor.
@@ -36,6 +37,7 @@ class Processor
         $this->newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
         $this->createThumbsFromLayersData();
         $this->createNewJSON($json);
+        $this->baseDir = dirname(__FILE__);
     }
 
     /**
@@ -157,13 +159,13 @@ class Processor
                 die('ERROR - Tile image could not be created.');
             }
         }
-        if(!is_dir(__DIR__.'created')){
-            mkdir(__DIR__.'created', 775);
+        if(!is_dir($this->baseDir.'created')){
+            mkdir($this->baseDir.'created', 775);
         }
-        imagepng($this->newMapImage, __DIR__.'created/'.$this->newName.'.png');
+        imagepng($this->newMapImage, $this->baseDir.'created/'.$this->newName.'.png');
         $currentUrl = '';
-        if(file_exists(__DIR__.'config.php')){
-            require_once(__DIR__.'config.php');
+        if(file_exists($this->baseDir.'config.php')){
+            require_once($this->baseDir.'config.php');
         }
         echo '<div class="col-12 mb-3">'
             .'<h2>Download your optimized JSON and image map file!</h2>'
@@ -249,7 +251,7 @@ class Processor
         $newTileSet->tilewidth = $this->tileHeight;
         $newTileSet->transparentcolor = $this->transparentColor;
         $json->tilesets = [$newTileSet];
-        $save = fopen(__DIR__.'created/'.$this->newName.'.json', 'w');
+        $save = fopen($this->baseDir.'created/'.$this->newName.'.json', 'w');
         fwrite($save, json_encode($json));
         fclose($save);
     }
