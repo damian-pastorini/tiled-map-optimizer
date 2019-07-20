@@ -1,4 +1,9 @@
 <?php
+// get config:
+require_once('config.php');
+// shortcut:
+define('DS', DIRECTORY_SEPARATOR);
+
 /**
  * Class Processor
  */
@@ -19,15 +24,18 @@ class Processor
     protected $uploadedImages = [];
     protected $newImagesPositions = [];
     protected $baseDir;
+    protected $createDir;
 
     /**
      * Processor constructor.
      * @param $json
      * @param $images
      * @param string $newName
+     * @param string $transparentColor
      */
     public function __construct($json, $images, $newName = 'optimizedMap', $transparentColor = '#000000')
     {
+        $this->createAndConfigureFolders();
         $this->newName = $newName;
         $this->transparentColor = $transparentColor;
         $this->tileWidth = $json->tilewidth;
@@ -37,7 +45,15 @@ class Processor
         $this->newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
         $this->createThumbsFromLayersData();
         $this->createNewJSON($json);
-        $this->baseDir = dirname(__FILE__);
+    }
+
+    protected function createAndConfigureFolders()
+    {
+        $this->baseDir = dirname(__FILE__).DS;
+        $this->createDir = $this->baseDir.DS.'create'.DS;
+        if(!is_dir($this->createDir)){
+            mkdir($this->createDir, 775);
+        }
     }
 
     /**
@@ -159,23 +175,17 @@ class Processor
                 die('ERROR - Tile image could not be created.');
             }
         }
-        if(!is_dir($this->baseDir.'created')){
-            mkdir($this->baseDir.'created', 775);
-        }
-        imagepng($this->newMapImage, $this->baseDir.'created/'.$this->newName.'.png');
-        $currentUrl = '';
-        if(file_exists($this->baseDir.'config.php')){
-            require_once($this->baseDir.'config.php');
-        }
+        imagepng($this->newMapImage, $this->createDir.$this->newName.'.png');
+        chmod($this->createDir.$this->newName.'.png', '775');
         echo '<div class="col-12 mb-3">'
             .'<h2>Download your optimized JSON and image map file!</h2>'
             .'</div>'
             .'<div class="col-12 mb-3">'
-            .'<a href="'.$currentUrl.'/created/'.$this->newName.'.json">New JSON Map File</a>'
+            .'<a href="'.OPTIMIZER_URL.'/created/'.$this->newName.'.json">New JSON Map File</a>'
             .'</div>'
             .'<div class="col-12 mb-3">'
-            .'<a href="'.$currentUrl.'/created/'.$this->newName.'.png">'
-            .'<img src="'.$currentUrl.'/created/'.$this->newName.'.png"/>'
+            .'<a href="'.OPTIMIZER_URL.'/created/'.$this->newName.'.png">'
+            .'<img src="'.OPTIMIZER_URL.'/created/'.$this->newName.'.png"/>'
             .'</a>'
             .'</div>';
         imagedestroy($this->newMapImage);
@@ -251,8 +261,9 @@ class Processor
         $newTileSet->tilewidth = $this->tileHeight;
         $newTileSet->transparentcolor = $this->transparentColor;
         $json->tilesets = [$newTileSet];
-        $save = fopen($this->baseDir.'created/'.$this->newName.'.json', 'w');
+        $save = fopen($this->createDir.$this->newName.'.json', 'w');
         fwrite($save, json_encode($json));
+        chmod($this->createDir.$this->newName.'.json', '775');
         fclose($save);
     }
 
