@@ -35,7 +35,7 @@
                 </ul>
             </div>
         </div>
-        <form action="<?php echo $currentUrl; ?>index.php" method="post" enctype="multipart/form-data">
+        <form action="<?php echo $currentUrl; ?>/index.php" method="post" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-3">
                     <label for="json_file">Optimized Map New Name</label>
