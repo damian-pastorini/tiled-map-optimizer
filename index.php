@@ -3,9 +3,9 @@
 <html>
 <head>
     <title>DwD - Tilemap Optimizer</title>
-    <link rel="stylesheet" href="<?php echo $currentUrl; ?>/css/bootstrap.min.css"/>
-    <script src="<?php echo $currentUrl; ?>/js/jquery-3.4.1.min.js" type="text/javascript"></script>
-    <script src="<?php echo $currentUrl; ?>/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="<?php echo OPTIMIZER_URL; ?>/css/bootstrap.min.css"/>
+    <script src="<?php echo OPTIMIZER_URL; ?>/js/jquery-3.4.1.min.js" type="text/javascript"></script>
+    <script src="<?php echo OPTIMIZER_URL; ?>/js/bootstrap.bundle.min.js" type="text/javascript"></script>
     <script type="text/javascript">
         function addTileMap() {
             let counter = parseInt($('#counter').val());
@@ -35,7 +35,7 @@
                 </ul>
             </div>
         </div>
-        <form action="<?php echo $currentUrl; ?>/index.php" method="post" enctype="multipart/form-data">
+        <form action="<?php echo OPTIMIZER_URL; ?>/index.php" method="post" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-3">
                     <label for="json_file">Optimized Map New Name</label>
