@@ -161,9 +161,15 @@ class Processor
             mkdir('created', 775);
         }
         imagepng($this->newMapImage, 'created/'.$this->newName.'.png');
-        echo '<h2>Download your optimized JSON and image map files!</h2>';
-        echo '<img src="created/'.$this->newName.'.png"/>';
-        echo '<a href="created/'.$this->newName.'.json">New JSON Map File</a>';
+        echo '<div class="col-12 mb-3">'
+            .'<h2>Download your optimized JSON and image map file!</h2>'
+            .'</div>'
+            .'<div class="col-12 mb-3">'
+            .'<a href="/created/'.$this->newName.'.json">New JSON Map File</a>'
+            .'</div>'
+            .'<div class="col-12 mb-3">'
+            .'<a href="/created/'.$this->newName.'.png"><img src="/created/'.$this->newName.'.png"/></a>'
+            .'</div>';
         imagedestroy($this->newMapImage);
     }
 

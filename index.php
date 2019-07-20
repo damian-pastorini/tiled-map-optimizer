@@ -1,71 +1,129 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>DwD - Tilemap Optimizer</title>
-        <script src="jquery-3.4.1.min.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            function addTileMap() {
-                let counter = parseInt($('#counter').val());
-                counter++;
-                $('.tilemaps-container').append(`<br/><label for="tile_map[${counter}]">Tile Map PNG File</label><input id="tile_map[${counter}]" name="tile_map[${counter}]" type="file"/>`);
-                $('#counter').val(counter);
-            }
-        </script>
-    </head>
-    <body>
-        <h1><?php echo 'Tilemap Optimizer'; ?></h1>
-        <p>Notes:</p>
-        <ul>
-            <li>All the tiles in the map images must have the same tile width and height.</li>
-            <li>The JSON file must follow the Tiled Maps format.</li>
-        </ul>
-
-        <form action="index.php" method="post" enctype="multipart/form-data">
-            <p>
-                <label for="json_file">Optimized Map New Name</label><input id="new_name" name="new_name" type="text"/>
-            </p>
-            <p>
-                <label for="json_file">Transparent Color (i.e: #ffffff)</label><input id="transparent_color" name="transparent_color" type="text"/>
-                <br/><span>If not specified, then black ("#000000"), will be used by default.</span>
-            </p>
-            <p>
-                <label for="json_file">JSON Map File</label><input id="json_file" name="json_file" type="file"/>
-                <input type="hidden" id="counter" name="counter" value="0"/>
-            </p>
-            <div class="tilemaps-container">
-                <label for="tile_map[0]">Tile Map PNG File</label><input id="tile_map[0]" name="tile_map[0]" type="file"/>
-            </div>
-            <p>
-                <input value="Add Tilemap PNG File" type="button" id="add_tilemap" onclick="javascript:addTileMap()"/>
-            </p>
-            <p>
-                <input type="submit" value="Process!"/>
-            </p>
-        </form>
-        <?php
-        try {
-            // check files:
-            if(isset($_FILES['json_file']) && isset($_FILES['tile_map'])){
-                // get json:
-                $jsonContents = json_decode(file_get_contents($_FILES['json_file']['tmp_name']));
-                if(!$jsonContents->layers || !$jsonContents->tilesets){
-                    die('ERROR CODE - 1 - Invalid JSON file.');
-                }
-                if(!isset($_FILES['tile_map']['name'])){
-                    die('ERROR - Invalid image.');
-                }
-                // process content:
-                require_once('Processor.php');
-                $processor = new Processor(
-                    $jsonContents,
-                    $_FILES['tile_map'],
-                    (isset($_POST['new_name']) ? $_POST['new_name'] : false),
-                    (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : false)
-                );
-            }
-        } catch (Exception $e) {
-            echo $e->getMessage();
+<head>
+    <title>DwD - Tilemap Optimizer</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <script src="/js/jquery-3.4.1.min.js" type="text/javascript"></script>
+    <script src="/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function addTileMap() {
+            let counter = parseInt($('#counter').val());
+            counter++;
+            $('.tilemaps-container').append(`<br/><input id="tile_map[${counter}]" name="tile_map[${counter}]" type="file"/>`);
+            $('#counter').val(counter);
         }
-        ?>
-    </body>
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row text-center">
+            <span class="mb-3">&nbsp;</span>
+            <div class="col-12">
+                <h1><?php echo 'Tilemap Optimizer'; ?></h1>
+            </div>
+            <span class="mb-6">&nbsp;</span>
+        </div>
+        <div class="row text-center">
+            <div class="col-12">Notes:</div>
+        </div>
+        <div class="row text-center">
+            <div class="col-12">
+                <ul class="text-success">
+                    <li>All the tiles in the map images should have the same tile width and height.</li>
+                    <li>The JSON file must follow the Tiled maps JSON export format.</li>
+                </ul>
+            </div>
+        </div>
+        <form action="index.php" method="post" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="json_file">Optimized Map New Name</label>
+                </div>
+                <div class="col-9">
+                    <input id="new_name" name="new_name" type="text"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="json_file">Transparent Color (i.e: #ffffff)</label>
+                </div>
+                <div class="col-9">
+                    <input id="transparent_color" name="transparent_color" type="text"/>
+                    <span class="text-warning">If not specified, then black ("#000000"), will be used by default.</span>
+                </div>
+            </div>
+            <hr class="mb-2"/>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="json_file">JSON Map File</label>
+                </div>
+                <div class="col-9">
+                    <input id="json_file" name="json_file" type="file" required="required"/>
+                </div>
+            </div>
+            <hr class="mb-2"/>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="tile_map[0]">Tile Map PNG File</label>
+                    <input type="hidden" id="counter" name="counter" value="0"/>
+                </div>
+                <div class="col-9">
+                    <div class="tilemaps-container">
+                        <input id="tile_map[0]" name="tile_map[0]" type="file" required="required"/>
+                    </div>
+                </div>
+            </div>
+            <span class="mb-1">&nbsp;</span>
+            <div class="row">
+                <div class="col-md-3">
+                    <button class="btn btn-primary" type="button" id="add_tilemap" onclick="javascript:addTileMap()">
+                        Add Tilemap PNG File
+                    </button>
+                </div>
+            </div>
+            <hr class="mb-3"/>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <input class="btn btn-success" type="submit" value="Process!"/>
+                </div>
+            </div>
+            <hr class="mb-6"/>
+        </form>
+        <div class="row text-center mb-5">
+            <?php
+            try {
+                // check files:
+                if(isset($_FILES['json_file']) && isset($_FILES['tile_map'])){
+                    // get json:
+                    $jsonContents = json_decode(file_get_contents($_FILES['json_file']['tmp_name']));
+                    if(!$jsonContents->layers || !$jsonContents->tilesets){
+                        die('ERROR CODE - 1 - Invalid JSON file.');
+                    }
+                    if(!isset($_FILES['tile_map']['name'])){
+                        die('ERROR - Invalid image.');
+                    }
+                    // process content:
+                    require_once('Processor.php');
+                    $processor = new Processor(
+                        $jsonContents,
+                        $_FILES['tile_map'],
+                        (isset($_POST['new_name']) ? $_POST['new_name'] : false),
+                        (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : false)
+                    );
+                } else {
+                    echo '<div class="text-danger">There was an error please try again.</div>';
+                }
+            } catch (Exception $e) {
+                echo '<div class="text-danger">'.$e->getMessage().'</div>';
+            }
+            ?>
+        </div>
+        <div class="row text-center mb-5">
+            <div class="col-12 text-center">
+                <hr class="mb-1"/>
+                <a href="https://www.dwdeveloper.com/">by DwD</a>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
