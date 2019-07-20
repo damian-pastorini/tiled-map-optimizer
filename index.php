@@ -71,19 +71,14 @@
                 <div class="col-md-3">
                     <label for="tile_map[0]">Tile Map PNG File</label>
                     <input type="hidden" id="counter" name="counter" value="0"/>
+                    <button class="btn btn-primary" type="button" id="add_tilemap" onclick="javascript:addTileMap()">
+                        Add Tilemap PNG File
+                    </button>
                 </div>
                 <div class="col-9">
                     <div class="tilemaps-container">
                         <input id="tile_map[0]" name="tile_map[0]" type="file" required="required"/>
                     </div>
-                </div>
-            </div>
-            <span class="mb-1">&nbsp;</span>
-            <div class="row">
-                <div class="col-md-3">
-                    <button class="btn btn-primary" type="button" id="add_tilemap" onclick="javascript:addTileMap()">
-                        Add Tilemap PNG File
-                    </button>
                 </div>
             </div>
             <hr class="mb-3"/>
