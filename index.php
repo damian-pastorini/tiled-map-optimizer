@@ -111,8 +111,6 @@
                         (isset($_POST['new_name']) ? $_POST['new_name'] : false),
                         (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : false)
                     );
-                } else {
-                    echo '<div class="text-danger">There was an error please try again.</div>';
                 }
             } catch (Exception $e) {
                 echo '<div class="text-danger">'.$e->getMessage().'</div>';
