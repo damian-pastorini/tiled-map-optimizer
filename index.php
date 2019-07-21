@@ -108,7 +108,7 @@
                         $jsonContents,
                         $_FILES['tile_map'],
                         (isset($_POST['new_name']) ? $_POST['new_name'] : false),
-                        (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : false)
+                        (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : '#000000')
                     );
                 }
             } catch (Exception $e) {
