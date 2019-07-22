@@ -25,6 +25,9 @@ class Processor
     protected $newImagesPositions = [];
     protected $baseDir;
     protected $createDir;
+    protected $colorR;
+    protected $colorG;
+    protected $colorB;
 
     /**
      * Processor constructor.
@@ -42,7 +45,14 @@ class Processor
         $this->tileHeight = $json->tileheight;
         $this->orderImages($images);
         $this->parseJSON($json);
-        $this->newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
+        $this->colorR = $this->colorG = $this->colorB = 0;
+        $newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
+        imagesavealpha($newMapImage, true);
+        //create a fully transparent background (127 means fully transparent):
+        $trans_background = imagecolorallocatealpha($newMapImage, 0, 0, 0, 127);
+        // fill the image with a transparent background:
+        imagefill($newMapImage, 0, 0, $trans_background);
+        $this->newMapImage = $newMapImage;
         $this->createThumbsFromLayersData();
         $this->createNewJSON($json);
     }
