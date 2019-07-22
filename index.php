@@ -8,6 +8,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="<?php echo OPTIMIZER_URL; ?>/favicon-16x16.png">
     <link rel="manifest" href="<?php echo OPTIMIZER_URL; ?>/site.webmanifest">
     <link rel="stylesheet" href="<?php echo OPTIMIZER_URL; ?>/css/bootstrap.min.css"/>
+    <style type="text/css">
+        body { color:#fff; background-color:#000; }
+    </style>
     <script src="<?php echo OPTIMIZER_URL; ?>/js/jquery-3.4.1.min.js" type="text/javascript"></script>
     <script src="<?php echo OPTIMIZER_URL; ?>/js/bootstrap.bundle.min.js" type="text/javascript"></script>
     <script type="text/javascript">
