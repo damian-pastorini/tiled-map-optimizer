@@ -95,7 +95,38 @@ class Processor
             // map new positions:
             $this->mappedOldToNewTiles = array_merge($this->mappedOldToNewTiles, $clean);
         }
-        // clean up zeros:
+        // get tilesets data:
+        foreach ($json->tilesets as $tileset){
+            // get tiles used for animations:
+            $animations = [];
+            $animationTiles = [];
+            if(isset($tileset->tiles)){
+                $animations = array_merge($animations, $tileset->tiles);
+                foreach($tileset->tiles as $animation){
+                    $animationTiles[] = $tileset->firstgid + $animation->id;
+                    foreach($animation->animation as $frame){
+                        $animationTiles[] = $tileset->firstgid + $frame->tileid;
+                    }
+                }
+            }
+            $cleanAnimationTiles = array_unique($animationTiles);
+            // merge in the map array:
+            $this->mappedOldToNewTiles = array_merge($this->mappedOldToNewTiles, $cleanAnimationTiles);
+            // parse tileset data:
+            $tilesetImagePathArray = explode('/', $tileset->image);
+            $tilesetImageName = end($tilesetImagePathArray);
+            $this->tileSetData[$tileset->name] = [
+                'first' => $tileset->firstgid,
+                'last' => ($tileset->firstgid + $tileset->tilecount),
+                'tiles_count' => $tileset->tilecount,
+                'image' => $tilesetImageName,
+                'tmp_image' => $this->getTempImageByName($tilesetImageName),
+                'width' => $tileset->imagewidth,
+                'height' => $tileset->imageheight,
+                'animations' => $animations
+            ];
+        }
+        // clean up duplicates:
         $this->mappedOldToNewTiles = array_unique($this->mappedOldToNewTiles);
         // sort:
         sort($this->mappedOldToNewTiles);
@@ -107,20 +138,6 @@ class Processor
         $this->newMapImageWidth = $this->totalColumns * $this->tileWidth + $this->tileWidth;
         $this->totalRows = ceil($totalTiles / $this->totalColumns);
         $this->newMapImageHeight = $this->totalRows * $this->tileHeight;
-        // get tilesets data:
-        foreach ($json->tilesets as $tileset){
-            $tilesetImagePathArray = explode('/', $tileset->image);
-            $tilesetImageName = end($tilesetImagePathArray);
-            $this->tileSetData[$tileset->name] = [
-                'first' => $tileset->firstgid,
-                'last' => ($tileset->firstgid + $tileset->tilecount),
-                'tiles_count' => $tileset->tilecount,
-                'image' => $tilesetImageName,
-                'tmp_image' => $this->getTempImageByName($tilesetImageName),
-                'width' => $tileset->imagewidth,
-                'height' => $tileset->imageheight
-            ];
-        }
     }
 
     /**
@@ -249,6 +266,9 @@ class Processor
         return $result;
     }
 
+    /**
+     * @param $json
+     */
     protected function createNewJSON($json)
     {
         foreach ($json->layers as $layer){
@@ -256,6 +276,21 @@ class Processor
                 if($data !== 0){
                     $layer->data[$k] = $this->newImagesPositions[$data];
                 }
+            }
+        }
+        $animations = [];
+        foreach($this->tileSetData as $tileset){
+            foreach($tileset['animations'] as $animation){
+                $tmpAnimObj = new stdClass();
+                $tmpAnimObj->animation = [];
+                $tmpAnimObj->id = $this->newImagesPositions[($tileset['first']+$animation->id)];
+                foreach($animation->animation as $frame){
+                    $tmpFrame = new stdClass();
+                    $tmpFrame->duration = $frame->duration;
+                    $tmpFrame->tileid = $this->newImagesPositions[($tileset['first']+$frame->tileid)];
+                    $tmpAnimObj->animation[] = $tmpFrame;
+                }
+                $animations[] = $tmpAnimObj;
             }
         }
         $newTileSet = new stdClass();
@@ -271,6 +306,9 @@ class Processor
         $newTileSet->tileheight = $this->tileWidth;
         $newTileSet->tilewidth = $this->tileHeight;
         $newTileSet->transparentcolor = $this->transparentColor;
+        if(!empty($animations)){
+            $newTileSet->tiles = $animations;
+        }
         $json->tilesets = [$newTileSet];
         $save = fopen($this->createDir.$this->newName.'.json', 'w');
         fwrite($save, json_encode($json));
