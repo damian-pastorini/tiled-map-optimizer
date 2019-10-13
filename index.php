@@ -34,8 +34,8 @@
         <div class="row text-center">
             <div class="col-12">Notes:</div>
         </div>
-        <div class="row text-center">
-            <div class="col-12">
+        <div class="row justify-content-md-center">
+            <div class="col-7">
                 <ul class="text-success">
                     <li>All the tiles in the map images should have the same tile width and height.</li>
                     <li>The JSON file must follow the Tiled maps JSON export format.</li>
@@ -58,6 +58,17 @@
                 <div class="col-9">
                     <input id="transparent_color" name="transparent_color" type="text"/>
                     <span class="text-warning">If not specified, then black ("#000000"), will be used by default.</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="factors">Resize result?</label>
+                </div>
+                <div class="col-9">
+                    <input id="factors" name="factors" type="text"/>
+                    <span class="text-warning">
+                        Split the values with comma, for example: 2,3,4 will will multiply the size by x2, x3, x4.
+                    </span>
                 </div>
             </div>
             <hr class="mb-2"/>
@@ -107,11 +118,13 @@
                     }
                     // process content:
                     require_once('Processor.php');
-                    $processor = new Processor(
+                    $processor = new Processor();
+                    echo $processor->optimize(
                         $jsonContents,
                         $_FILES['tile_map'],
                         (isset($_POST['new_name']) ? $_POST['new_name'] : false),
-                        (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : '#000000')
+                        (isset($_POST['transparent_color']) ? $_POST['transparent_color'] : '#000000'),
+                        ((isset($_POST['factors']) && !empty($_POST['factors'])) ? $_POST['factors'] : false)
                     );
                 }
             } catch (Exception $e) {

@@ -10,6 +10,7 @@ define('DS', DIRECTORY_SEPARATOR);
 class Processor
 {
 
+    protected $createUrl;
     protected $newName;
     protected $transparentColor;
     protected $tileWidth;
@@ -28,17 +29,25 @@ class Processor
     protected $colorR;
     protected $colorG;
     protected $colorB;
+    protected $output = '';
 
     /**
-     * Processor constructor.
      * @param $json
      * @param $images
      * @param string $newName
      * @param string $transparentColor
+     * @param bool $factors
+     * @return string
      */
-    public function __construct($json, $images, $newName = 'optimizedMap', $transparentColor = '#000000')
-    {
+    public function optimize(
+        $json,
+        $images,
+        $newName = 'optimizedMap',
+        $transparentColor = '#000000',
+        $factors = false // string of comma separated values.
+    ){
         $this->createAndConfigureFolders();
+        $this->createUrl = (defined('OPTIMIZER_URL') ? OPTIMIZER_URL : '').'/created/';
         $this->newName = $newName;
         $this->transparentColor = $transparentColor;
         $this->tileWidth = $json->tilewidth;
@@ -49,12 +58,16 @@ class Processor
         $newMapImage = imagecreatetruecolor($this->newMapImageWidth, $this->newMapImageHeight);
         imagesavealpha($newMapImage, true);
         //create a fully transparent background (127 means fully transparent):
-        $trans_background = imagecolorallocatealpha($newMapImage, 0, 0, 0, 127);
+        $transBackground = imagecolorallocatealpha($newMapImage, 0, 0, 0, 127);
         // fill the image with a transparent background:
-        imagefill($newMapImage, 0, 0, $trans_background);
+        imagefill($newMapImage, 0, 0, $transBackground);
         $this->newMapImage = $newMapImage;
         $this->createThumbsFromLayersData();
         $this->createNewJSON($json);
+        if($factors){
+            $this->resizeTileset($factors);
+        }
+        return $this->output;
     }
 
     protected function createAndConfigureFolders()
@@ -204,16 +217,15 @@ class Processor
         }
         imagepng($this->newMapImage, $this->createDir.$this->newName.'.png');
         chmod($this->createDir.$this->newName.'.png', 0775);
-        // echo $this->createDir.$this->newName.'.png';
-        echo '<div class="col-12 mb-3">'
+        $this->output .= '<div class="col-12 mb-3">'
             .'<h2>Download your optimized JSON and image map file!</h2>'
             .'</div>'
             .'<div class="col-12 mb-3">'
-            .'<a href="'.OPTIMIZER_URL.'/created/'.$this->newName.'.json">New JSON Map File</a>'
+            .'<a href="'.$this->createUrl.$this->newName.'.json">New JSON Map File</a>'
             .'</div>'
             .'<div class="col-12 mb-3">'
-            .'<a href="'.OPTIMIZER_URL.'/created/'.$this->newName.'.png">'
-            .'<img src="'.OPTIMIZER_URL.'/created/'.$this->newName.'.png"/>'
+            .'<a href="'.$this->createUrl.$this->newName.'.png">'
+            .'<img src="'.$this->createUrl.$this->newName.'.png"/>'
             .'</a>'
             .'</div>';
         imagedestroy($this->newMapImage);
@@ -314,7 +326,62 @@ class Processor
         fwrite($save, json_encode($json));
         fclose($save);
         chmod($this->createDir.$this->newName.'.json', 0775);
-        // echo $this->createDir.$this->newName.'.json';
+    }
+
+    /**
+     * @param string $factors
+     */
+    public function resizeTileset($factors = '2')
+    {
+        // multipliers:
+        $multipliers = explode(',', $factors);
+        // original files data:
+        $originalTilesetImage = $this->createDir.DS.$this->newName.'.png';
+        $originalTilsetJson = $this->createDir.DS.$this->newName.'.json';
+        foreach($multipliers as $multiplier){
+            // new files names:
+            $resizedImageName = $this->newName.'-x'.$multiplier.'.png';
+            $resizedJsonName = $this->newName.'-x'.$multiplier.'.json';
+            // get new sizes
+            list($width, $height) = getimagesize($originalTilesetImage);
+            $newWidth = $width * $multiplier;
+            $newHeight = $height * $multiplier;
+            // load
+            $thumb = imagecreatetruecolor($newWidth, $newHeight);
+            imagesavealpha($thumb, true);
+            $source = imagecreatefrompng($originalTilesetImage);
+            //create a fully transparent background (127 means fully transparent):
+            $trans_background = imagecolorallocatealpha($thumb, 0, 0, 0, 127);
+            // fill the image with a transparent background:
+            imagefill($thumb, 0, 0, $trans_background);
+            // resize
+            imagecopyresized($thumb, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            // output
+            imagepng($thumb, $this->createDir.DS.$resizedImageName);
+            // process original json:
+            $json = json_decode(file_get_contents($originalTilsetJson));
+            // modify values:
+            $json->tilewidth = $json->tilewidth * $multiplier;
+            $json->tileheight = $json->tileheight * $multiplier;
+            foreach ($json->tilesets as $tileset){
+                $tileset->tilewidth = $tileset->tilewidth * $multiplier;
+                $tileset->tileheight = $tileset->tileheight * $multiplier;
+                $tileset->image = $resizedImageName;
+                $tileset->imagewidth = $newWidth;
+                $tileset->imageheight = $newHeight;
+            }
+            // save new json
+            $save = fopen($this->createDir.DS.$resizedJsonName, 'w');
+            fwrite($save, json_encode($json));
+            fclose($save);
+            // print result:
+            $this->output .= '<div class="col-12 mb-3">'
+                .'<a href="'.$this->createUrl.$resizedJsonName.'">Download your JSON file! Resized x'.$multiplier.'</a>'
+                .'</div>'
+                .'<div class="col-12 mb-3">'
+                .'<img src="'.$this->createUrl.$resizedImageName.'"/>'
+                .'</div>';
+        }
     }
 
 }

@@ -1,0 +1,2 @@
+<?php
+define('OPTIMIZER_URL', ''); // https://www.dwdeveloper.com/tiled-map-optimizer
