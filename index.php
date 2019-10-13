@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DwD - Tilemap Optimizer</title>
+    <title>DwD - Tiled Map Optimizer</title>
     <link rel="apple-touch-icon" sizes="180x180" href="<?php echo OPTIMIZER_URL; ?>/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="<?php echo OPTIMIZER_URL; ?>/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="<?php echo OPTIMIZER_URL; ?>/favicon-16x16.png">
@@ -27,7 +27,7 @@
         <div class="row text-center">
             <span class="mb-3">&nbsp;</span>
             <div class="col-12">
-                <h1><?php echo 'Tilemap Optimizer'; ?></h1>
+                <h1><?php echo 'Tiled Map Optimizer'; ?></h1>
             </div>
             <span class="mb-6">&nbsp;</span>
         </div>
