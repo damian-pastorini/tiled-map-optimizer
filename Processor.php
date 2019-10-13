@@ -295,11 +295,11 @@ class Processor
             foreach($tileset['animations'] as $animation){
                 $tmpAnimObj = new stdClass();
                 $tmpAnimObj->animation = [];
-                $tmpAnimObj->id = $this->newImagesPositions[($tileset['first']+$animation->id)];
+                $tmpAnimObj->id = $this->newImagesPositions[($tileset['first']+$animation->id)]-1;
                 foreach($animation->animation as $frame){
                     $tmpFrame = new stdClass();
                     $tmpFrame->duration = $frame->duration;
-                    $tmpFrame->tileid = $this->newImagesPositions[($tileset['first']+$frame->tileid)];
+                    $tmpFrame->tileid = $this->newImagesPositions[($tileset['first']+$frame->tileid)]-1;
                     $tmpAnimObj->animation[] = $tmpFrame;
                 }
                 $animations[] = $tmpAnimObj;
