@@ -218,6 +218,7 @@ class Processor
         imagepng($this->newMapImage, $this->createDir.$this->newName.'.png');
         chmod($this->createDir.$this->newName.'.png', 0775);
         $this->output .= '<div class="col-12 mb-3">'
+            .'<hr class="mb-6"/>'
             .'<h2>Download your optimized JSON and image map file!</h2>'
             .'</div>'
             .'<div class="col-12 mb-3">'
@@ -267,13 +268,14 @@ class Processor
     protected function getTileSetByTileIndex($mappedTileIndex)
     {
         $result = false;
-        foreach ($this->tileSetData as $tileSet){
+        foreach ($this->tileSetData as $tileSetName => $tileSet){
             if($mappedTileIndex >= $tileSet['first'] && $mappedTileIndex <= $tileSet['last']){
                 $result = $tileSet;
             }
         }
         if(!$result){
-            die('ERROR - $mappedTileIndex not found');
+            echo 'ERROR - $mappedTileIndex not found: '.$mappedTileIndex.' - Selected default tileset:'.$tileSetName.'<br/>';
+            $result = $tileSet;
         }
         return $result;
     }
@@ -376,6 +378,7 @@ class Processor
             fclose($save);
             // print result:
             $this->output .= '<div class="col-12 mb-3">'
+                .'<hr class="mb-6"/>'
                 .'<a href="'.$this->createUrl.$resizedJsonName.'">Download your JSON file! Resized x'.$multiplier.'</a>'
                 .'</div>'
                 .'<div class="col-12 mb-3">'
